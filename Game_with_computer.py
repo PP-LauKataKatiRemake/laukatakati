@@ -251,3 +251,14 @@ class GameWithComputer():
         list_of_states[moves_list[0]] = State.EMPTY
         list_of_states[moves_list[1]] = actual_state
         return list_of_states
+
+    def check_win(self, given_state):
+        counter = 0
+        for x in self.board:
+            if self.board[x] == given_state:
+                counter += 1
+
+        if counter == 0:
+            return True
+        else:
+            return False
