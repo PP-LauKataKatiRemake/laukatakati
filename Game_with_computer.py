@@ -57,7 +57,7 @@ class GameWithComputer():
             19: State.WHITE
         }
 
-        self.current_player = State.WHITE
+        self.white_turn = True
         self.go_deeper = True
         self.game_over = False
         self.white_wins = False
@@ -148,7 +148,7 @@ class GameWithComputer():
 
         return list_full
 
-    def check_any_captures(self, my_state, opponent_state):
+    def check_any_captures(self,  my_state, opponent_state):
         for index in self.board:
             if self.board[index] == my_state:
                 for el in self.possible_captures[index]:
@@ -262,3 +262,87 @@ class GameWithComputer():
             return True
         else:
             return False
+
+    def make_hit(self):
+        """Wykonywanie bicia przez gracza"""
+        hit_pawn = self.has_common(self.possible_moves[self.interaction[0]], self.possible_moves[self.interaction[1]])
+        self.board[hit_pawn] = State.EMPTY
+        self.board[self.interaction[1]] = self.board[self.interaction[0]]
+        self.board[self.interaction[0]] = State.EMPTY
+
+    def make_move(self):
+        """Wykonywanie ruchu przez gracza"""
+        self.board[self.interaction[1]] = self.board[self.interaction[0]]
+        self.board[self.interaction[0]] = State.EMPTY
+        self.white_turn = not self.white_turn
+        self.interaction.clear()
+
+    def add_to_interaction(self, pos):
+        """Obsługa ruchu gracza"""
+        if self.white_turn:
+
+            if (len(self.interaction)) == 0 and self.board[pos] == State.WHITE: # pierwsze klikniete pole przez usera nie moze byc puste
+
+                self.interaction.append(pos)
+
+            elif (len(self.interaction)) == 1 and self.board[pos] != State.EMPTY:  # próba ruchu na zajęte miejsce
+
+                self.interaction.clear()
+
+            elif (len(self.interaction)) == 1 and self.board[pos] == State.EMPTY:  # prawidłowy ruch
+
+                self.interaction.append(pos)
+                if self.check_any_captures(State.WHITE, State.BLACK):
+
+                    if self.interaction[1] in self.possible_moves[self.interaction[0]]:  # ruch bez bicia
+
+                        self.interaction.clear()
+
+                    elif (self.interaction[1] not in self.possible_moves[self.interaction[0]])\
+                            and ((self.interaction[1] in self.possible_captures[self.interaction[0]])
+                                 and (self.board[self.has_common(self.possible_moves[self.interaction[0]],
+                                                                       self.possible_moves[self.interaction[1]])] == State.BLACK)):
+
+                        self.make_hit()
+
+                        if self.check_pawn_captures(State.BLACK, self.interaction[1]):
+                            self.interaction.clear()
+                        else:
+                            self.white_turn = False
+                            self.interaction.clear()
+                    else:
+                        self.interaction.clear()
+                else:
+                    if self.interaction[1] in self.possible_moves[self.interaction[0]]:  # ruch bez bicia
+
+                        self.make_move()
+
+                    elif (self.interaction[1] not in self.possible_moves[self.interaction[0]]) \
+                            and ((self.interaction[1] in self.possible_captures[self.interaction[0]])
+                                 and (self.board[self.has_common(self.possible_moves[self.interaction[0]],
+                                                                       self.possible_moves[
+                                                                           self.interaction[1]])] == State.BLACK)):
+                        self.make_hit()
+
+                        if self.check_pawn_captures(State.BLACK, self.interaction[1]):
+                            self.interaction.clear()
+                        else:
+                            self.white_turn = False
+                    else:
+                        self.interaction.clear()
+                if self.check_win(State.BLACK):
+                    self.white_wins = True
+                    self.game_over = True
+
+        elif not self.white_turn: #computer - green
+            self.computer_move()
+            if self.check_win(State.WHITE):
+                self.black_wins = True
+                self.game_over = True
+
+    def computer_move(self):
+        """Obsługa ruchu komputera"""
+        self.get_minimax_tree(self.board, 5, State.BLACK, 0)
+        self.board= self.pos
+        self.Max = -100
+        self.white_turn=True
