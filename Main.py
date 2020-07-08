@@ -7,9 +7,9 @@ from Game_with_computer import GameWithComputer, State
 def draw_pawns():
     for i in range(1, 20):
         if game_with_computer.board[i] == State.WHITE:
-            screen.blit(white, (game_with_computer.coordinates[i]))
+            screen.blit(white, (game_with_computer.coordinates[i][0] - 33, game_with_computer.coordinates[i][1] - 33))
         elif game_with_computer.board[i] == State.BLACK:
-            screen.blit(black, (game_with_computer.coordinates[i]))
+            screen.blit(black, (game_with_computer.coordinates[i][0] - 33, game_with_computer.coordinates[i][1] - 33))
 
 
 if __name__ == '__main__':
@@ -43,9 +43,9 @@ if __name__ == '__main__':
                     screen.blit(white, (game_with_computer.coordinates[2]))
                     game_with_computer.add_to_interaction(object_index)
                     draw_pawns()
-            draw_pawns()
 
         screen.blit(background, (0, 0))
+        draw_pawns()
         pygame.display.flip()
         clock.tick(60)
         time.sleep(0.5)
