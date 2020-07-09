@@ -1,17 +1,16 @@
 from enum import Enum
-from Minimax import Minimax
+from minimax import Minimax
 
 
 class State(Enum):
     BLACK = 'black'
     WHITE = 'white'
     EMPTY = 'empty'
-    X = 'X'
 
 
-class GameWithComputer():
+class Game:
     def __init__(self):
-        self.coordinates = {
+        self.positions = {
             1: (133, 100),
             2: (400, 100),
             3: (666, 100),
@@ -65,7 +64,7 @@ class GameWithComputer():
 
         self.Max = -1000
         self.pos = 0
-        self.possible_moves = {
+        self.available_moves = {
             1: [2, 4],
             2: [1, 3, 5],
             3: [2, 6],
@@ -87,7 +86,7 @@ class GameWithComputer():
             19: [16, 18]
         }
 
-        self.possible_captures = {
+        self.available_captures = {
             1: [3, 7],
             2: [8],
             3: [1, 9],
@@ -119,29 +118,29 @@ class GameWithComputer():
 
     def check_if_clickable(self, mouse_position):
         for i in range(1, 20):
-            x_min = self.coordinates[i][0] - 8
-            x_max = self.coordinates[i][0] + 8
-            y_min = self.coordinates[i][1] - 8
-            y_max = self.coordinates[i][1] + 8
+            x_min = self.positions[i][0] - 8
+            x_max = self.positions[i][0] + 8
+            y_min = self.positions[i][1] - 8
+            y_max = self.positions[i][1] + 8
 
             if mouse_position[0] >= x_min and mouse_position[0] <= x_max and mouse_position[1] >= y_min \
-                    and mouse_position[1] <= y_max:
+                and mouse_position[1] <= y_max:
                 return i
 
     def check_pawn_captures(self, opponent_state, my_position):
-        for element in self.possible_captures[my_position]:
+        for element in self.available_captures[my_position]:
             if self.board[element] == State.EMPTY:
-                capture = self.has_common(self.possible_moves[my_position], self.possible_moves[element])
+                capture = self.has_common(self.available_moves[my_position], self.available_moves[element])
                 if self.board[capture] == opponent_state:
                     return True
 
         return False
 
-    def tree_pawn_caputures(self, list_of_states, opponent_state, my_position):
+    def tree_pawn_captures(self, list_of_states, opponent_state, my_position):
         list_full = []
-        for element in self.possible_captures[my_position]:
+        for element in self.available_captures[my_position]:
             if list_of_states[element] == State.EMPTY:
-                hit = self.has_common(self.possible_moves[my_position], self.possible_moves[element])
+                hit = self.has_common(self.available_moves[my_position], self.available_moves[element])
                 if list_of_states[hit] == opponent_state:
                     l = [my_position, hit, element]
                     list_full.append(l)
@@ -151,9 +150,9 @@ class GameWithComputer():
     def check_any_captures(self,  my_state, opponent_state):
         for index in self.board:
             if self.board[index] == my_state:
-                for el in self.possible_captures[index]:
+                for el in self.available_captures[index]:
                     if self.board[el] == State.EMPTY:
-                        hit = self.has_common(self.possible_moves[index], self.possible_moves[el])
+                        hit = self.has_common(self.available_moves[index], self.available_moves[el])
 
                         if self.board[hit] == opponent_state:
                             return True
@@ -164,9 +163,9 @@ class GameWithComputer():
         list_full = []
         for index in list_of_states:
             if list_of_states[index] == my_state:
-                for el in self.possible_captures[index]:
+                for el in self.available_captures[index]:
                     if list_of_states[el] == State.EMPTY:
-                        hit = self.has_common(self.possible_moves[index], self.possible_moves[el])
+                        hit = self.has_common(self.available_moves[index], self.available_moves[el])
 
                         if list_of_states[hit] == opponent_state:
                             l = [index, hit, el]
@@ -178,7 +177,7 @@ class GameWithComputer():
         list_of_moves = []
         for index in list_of_states:
             if list_of_states[index] == my_state:
-                for el in self.possible_moves[index]:
+                for el in self.available_moves[index]:
                     if list_of_states[el] == State.EMPTY:
                         l = [index, el]
                         list_of_moves.append(l)
@@ -238,7 +237,7 @@ class GameWithComputer():
         list_of_states[capture_list[0]] = State.EMPTY
         list_of_states[capture_list[1]] = State.EMPTY
         list_of_states[capture_list[2]] = actual_state
-        c_l = self.tree_pawn_caputures(list_of_states, opponent_state, capture_list[2])
+        c_l = self.tree_pawn_captures(list_of_states, opponent_state, capture_list[2])
         if not c_l:
             return list_of_states
         else:
@@ -263,47 +262,38 @@ class GameWithComputer():
         else:
             return False
 
-    def make_hit(self):
-        """Wykonywanie bicia przez gracza"""
-        hit_pawn = self.has_common(self.possible_moves[self.interaction[0]], self.possible_moves[self.interaction[1]])
+    def make_capture(self):
+        hit_pawn = self.has_common(self.available_moves[self.interaction[0]], self.available_moves[self.interaction[1]])
         self.board[hit_pawn] = State.EMPTY
         self.board[self.interaction[1]] = self.board[self.interaction[0]]
         self.board[self.interaction[0]] = State.EMPTY
 
     def make_move(self):
-        """Wykonywanie ruchu przez gracza"""
         self.board[self.interaction[1]] = self.board[self.interaction[0]]
         self.board[self.interaction[0]] = State.EMPTY
         self.white_turn = not self.white_turn
         self.interaction.clear()
 
     def add_to_interaction(self, pos):
-        """Obsługa ruchu gracza"""
         if self.white_turn:
-
-            if (len(self.interaction)) == 0 and self.board[pos] == State.WHITE: # pierwsze klikniete pole przez usera nie moze byc puste
-
+            if (len(self.interaction)) == 0 and self.board[pos] == State.WHITE:
                 self.interaction.append(pos)
 
-            elif (len(self.interaction)) == 1 and self.board[pos] != State.EMPTY:  # próba ruchu na zajęte miejsce
-
+            elif (len(self.interaction)) == 1 and self.board[pos] != State.EMPTY:
                 self.interaction.clear()
 
-            elif (len(self.interaction)) == 1 and self.board[pos] == State.EMPTY:  # prawidłowy ruch
-
+            elif (len(self.interaction)) == 1 and self.board[pos] == State.EMPTY:
                 self.interaction.append(pos)
+
                 if self.check_any_captures(State.WHITE, State.BLACK):
-
-                    if self.interaction[1] in self.possible_moves[self.interaction[0]]:  # ruch bez bicia
-
+                    if self.interaction[1] in self.available_moves[self.interaction[0]]:
                         self.interaction.clear()
 
-                    elif (self.interaction[1] not in self.possible_moves[self.interaction[0]])\
-                            and ((self.interaction[1] in self.possible_captures[self.interaction[0]])
-                                 and (self.board[self.has_common(self.possible_moves[self.interaction[0]],
-                                                                       self.possible_moves[self.interaction[1]])] == State.BLACK)):
-
-                        self.make_hit()
+                    elif (self.interaction[1] not in self.available_moves[self.interaction[0]])\
+                            and ((self.interaction[1] in self.available_captures[self.interaction[0]])
+                                 and (self.board[self.has_common(self.available_moves[self.interaction[0]],
+                                                                 self.available_moves[self.interaction[1]])] == State.BLACK)):
+                        self.make_capture()
 
                         if self.check_pawn_captures(State.BLACK, self.interaction[1]):
                             self.interaction.clear()
@@ -313,16 +303,15 @@ class GameWithComputer():
                     else:
                         self.interaction.clear()
                 else:
-                    if self.interaction[1] in self.possible_moves[self.interaction[0]]:  # ruch bez bicia
-
+                    if self.interaction[1] in self.available_moves[self.interaction[0]]:
                         self.make_move()
 
-                    elif (self.interaction[1] not in self.possible_moves[self.interaction[0]]) \
-                            and ((self.interaction[1] in self.possible_captures[self.interaction[0]])
-                                 and (self.board[self.has_common(self.possible_moves[self.interaction[0]],
-                                                                       self.possible_moves[
+                    elif (self.interaction[1] not in self.available_moves[self.interaction[0]]) \
+                            and ((self.interaction[1] in self.available_captures[self.interaction[0]])
+                                 and (self.board[self.has_common(self.available_moves[self.interaction[0]],
+                                                                       self.available_moves[
                                                                            self.interaction[1]])] == State.BLACK)):
-                        self.make_hit()
+                        self.make_capture()
 
                         if self.check_pawn_captures(State.BLACK, self.interaction[1]):
                             self.interaction.clear()
@@ -334,15 +323,14 @@ class GameWithComputer():
                     self.white_wins = True
                     self.game_over = True
 
-        elif not self.white_turn: #computer - green
+        elif not self.white_turn:
             self.computer_move()
             if self.check_win(State.WHITE):
                 self.black_wins = True
                 self.game_over = True
 
     def computer_move(self):
-        """Obsługa ruchu komputera"""
         self.get_minimax_tree(self.board, 5, State.BLACK, 0)
-        self.board= self.pos
+        self.board = self.pos
         self.Max = -100
-        self.white_turn=True
+        self.white_turn = True
