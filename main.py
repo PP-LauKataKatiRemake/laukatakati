@@ -14,8 +14,7 @@ def draw_pawns():
 if __name__ == '__main__':
     pygame.init()
     pygame.font.init()
-    font = pygame.font.SysFont('Arial', 18)
-    text_surface = font.render('', False, (0, 0, 0))
+    font = pygame.font.Font('assets\Fipps-Regular.otf', 12)
 
     screen = pygame.display.set_mode((800, 800))
     pygame.display.set_caption('Lau kata kati')
@@ -38,5 +37,15 @@ if __name__ == '__main__':
 
         screen.blit(background, (0, 0))
         draw_pawns()
+        if game.white_wins:
+            text_surface = font.render('Bialy wygrywa!', False, (0, 0, 0))
+        if game.black_wins:
+            text_surface = font.render('Czarny wygrywa!', False, (0, 0, 0))
+        if game.white_turn and not game.white_wins and not game.black_wins:
+            text_surface = font.render('Ruch - bialy', False, (0, 0, 0))
+        if not game.white_turn and not game.white_wins and not game.black_wins:
+            text_surface = font.render('Ruch - czarny', False, (0, 0, 0))
+
+        screen.blit(text_surface, (10, 10))
         pygame.display.update()
         clock.tick(60)
