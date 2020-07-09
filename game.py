@@ -57,7 +57,6 @@ class Game:
         }
 
         self.white_turn = True
-        self.go_deeper = True
         self.game_over = False
         self.white_wins = False
         self.black_wins = False
