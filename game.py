@@ -118,10 +118,10 @@ class Game:
 
     def check_if_clickable(self, mouse_position):
         for i in range(1, 20):
-            x_min = self.positions[i][0] - 8
-            x_max = self.positions[i][0] + 8
-            y_min = self.positions[i][1] - 8
-            y_max = self.positions[i][1] + 8
+            x_min = self.positions[i][0] - 40
+            x_max = self.positions[i][0] + 40
+            y_min = self.positions[i][1] - 40
+            y_max = self.positions[i][1] + 40
 
             if mouse_position[0] >= x_min and mouse_position[0] <= x_max and mouse_position[1] >= y_min \
                 and mouse_position[1] <= y_max:
