@@ -74,15 +74,15 @@ class Game:
             8: [5, 7, 9, 10],
             9: [6, 8, 10],
             10: [7, 8, 9, 11, 12, 13],
-            11: [10, 12, 14],
-            12: [10, 11, 13, 15],
-            13: [10, 12, 16],
-            14: [11, 15, 17],
-            15: [12, 14, 16, 18],
-            16: [13, 15, 19],
-            17: [14, 18],
-            18: [15, 17, 19],
-            19: [16, 18]
+            11: [14, 12, 10],
+            12: [15, 13, 11, 10],
+            13: [16, 12, 10],
+            14: [17, 15, 11],
+            15: [18, 16, 14, 12],
+            16: [19, 15, 13],
+            17: [18, 14],
+            18: [19, 17, 15],
+            19: [18, 16]
         }
 
         self.available_captures = {
@@ -94,7 +94,7 @@ class Game:
             6: [4, 10],
             7: [1, 9, 13],
             8: [2, 12],
-            9: [3, 11],
+            9: [3, 7, 11],
             10: [4, 5, 6, 14, 15, 16],
             11: [9, 13, 17],
             12: [8, 18],
@@ -216,7 +216,7 @@ class Game:
             if possible_moves == [] and possible_captures == []:
                 white_pawns_counter = self.count_pawns(list_of_states, State.WHITE)
                 black_pawns_counter = self.count_pawns(list_of_states, State.BLACK)
-                evaluation = white_pawns_counter - black_pawns_counter
+                evaluation = black_pawns_counter - white_pawns_counter
                 if evaluation > self.Max:
                     self.Max = evaluation
                     while leaf.parent.parent != 0:
@@ -225,7 +225,7 @@ class Game:
         else:
             white_pawns_counter = self.count_pawns(list_of_states, State.WHITE)
             black_pawns_counter = self.count_pawns(list_of_states, State.BLACK)
-            evaluation = white_pawns_counter - black_pawns_counter
+            evaluation = black_pawns_counter - white_pawns_counter
             if evaluation > self.Max:
                 self.Max = evaluation
                 while leaf.parent.parent != 0:
