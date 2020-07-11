@@ -192,7 +192,7 @@ class Game:
 
         return counter
 
-    def get_minimax_tree(self, list_of_states, depth, actual_state, parent):
+    def get_minimax_tree(self, list_of_states, depth, actual_state, parent, alpha, beta):
         if actual_state == State.WHITE:
             opponent_state = State.BLACK
         elif actual_state == State.BLACK:
@@ -200,23 +200,31 @@ class Game:
 
         possible_captures = self.return_captures_list(list_of_states, actual_state, opponent_state)
         possible_moves = self.return_moves_list(list_of_states, actual_state)
-        leaf = Minimax(depth, list_of_states.copy(), possible_captures, possible_moves, parent)
+        leaf = Minimax(depth, list_of_states.copy(), possible_captures, possible_moves, parent, alpha, beta)
         self.list_of_leaves.append(leaf)
         if depth > 0:
             if possible_captures:
                 for capture in leaf.captures:
                     self.get_minimax_tree(self.tree_capture(capture, list_of_states.copy(), actual_state, opponent_state),
-                                          depth-1, opponent_state, leaf)
+                                          depth-1, opponent_state, leaf, alpha, beta)
+                    if alpha >= beta:
+                        break
 
             if possible_captures == [] and possible_moves:
                 for move in leaf.moves:
                     self.get_minimax_tree(self.tree_move(move, list_of_states.copy(), actual_state), depth-1,
-                                          opponent_state, leaf)
+                                          opponent_state, leaf, alpha, beta)
+                    if alpha >= beta:
+                        break
 
             if possible_moves == [] and possible_captures == []:
                 white_pawns_counter = self.count_pawns(list_of_states, State.WHITE)
                 black_pawns_counter = self.count_pawns(list_of_states, State.BLACK)
                 evaluation = black_pawns_counter - white_pawns_counter
+                if actual_state == State.WHITE:
+                    alpha = min(alpha, evaluation)
+                if actual_state == State.BLACK:
+                    beta = max(beta, evaluation)
                 if evaluation > self.Max:
                     self.Max = evaluation
                     while leaf.parent.parent != 0:
@@ -329,7 +337,7 @@ class Game:
                 self.game_over = True
 
     def computer_move(self):
-        self.get_minimax_tree(self.board, 5, State.BLACK, 0)
+        self.get_minimax_tree(self.board, 6, State.BLACK, 0, -1000, 1000)
         self.board = self.pos
         self.Max = -100
         self.white_turn = True
