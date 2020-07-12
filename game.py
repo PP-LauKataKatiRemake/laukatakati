@@ -108,14 +108,14 @@ class Game:
         }
         self.list_of_leaves = []
 
-    def has_common(self, list1, list2):
+    def find_path(self, list1, list2):
         for e1 in list1:
             for e2 in list2:
                 if e1 == e2:
                     return e1
         return False
 
-    def check_if_clickable(self, mouse_position):
+    def is_interactive(self, mouse_position):
         for i in range(1, 20):
             x_min = self.positions[i][0] - 40
             x_max = self.positions[i][0] + 40
@@ -129,7 +129,7 @@ class Game:
     def check_pawn_captures(self, opponent_state, my_position):
         for element in self.available_captures[my_position]:
             if self.board[element] == State.EMPTY:
-                capture = self.has_common(self.available_moves[my_position], self.available_moves[element])
+                capture = self.find_path(self.available_moves[my_position], self.available_moves[element])
                 if self.board[capture] == opponent_state:
                     return True
 
@@ -139,7 +139,7 @@ class Game:
         list_full = []
         for element in self.available_captures[my_position]:
             if list_of_states[element] == State.EMPTY:
-                hit = self.has_common(self.available_moves[my_position], self.available_moves[element])
+                hit = self.find_path(self.available_moves[my_position], self.available_moves[element])
                 if list_of_states[hit] == opponent_state:
                     l = [my_position, hit, element]
                     list_full.append(l)
@@ -151,7 +151,7 @@ class Game:
             if self.board[index] == my_state:
                 for el in self.available_captures[index]:
                     if self.board[el] == State.EMPTY:
-                        hit = self.has_common(self.available_moves[index], self.available_moves[el])
+                        hit = self.find_path(self.available_moves[index], self.available_moves[el])
 
                         if self.board[hit] == opponent_state:
                             return True
@@ -164,7 +164,7 @@ class Game:
             if list_of_states[index] == my_state:
                 for el in self.available_captures[index]:
                     if list_of_states[el] == State.EMPTY:
-                        hit = self.has_common(self.available_moves[index], self.available_moves[el])
+                        hit = self.find_path(self.available_moves[index], self.available_moves[el])
 
                         if list_of_states[hit] == opponent_state:
                             l = [index, hit, el]
@@ -198,6 +198,15 @@ class Game:
         elif actual_state == State.BLACK:
             opponent_state = State.WHITE
 
+        white_pawns_counter = self.count_pawns(list_of_states, State.WHITE)
+        black_pawns_counter = self.count_pawns(list_of_states, State.BLACK)
+        evaluation = black_pawns_counter - white_pawns_counter
+
+        if actual_state == State.WHITE:
+            alpha = min(alpha, evaluation)
+        if actual_state == State.BLACK:
+            beta = max(beta, evaluation)
+
         possible_captures = self.return_captures_list(list_of_states, actual_state, opponent_state)
         possible_moves = self.return_moves_list(list_of_states, actual_state)
         leaf = Minimax(depth, list_of_states.copy(), possible_captures, possible_moves, parent, alpha, beta)
@@ -205,26 +214,24 @@ class Game:
         if depth > 0:
             if possible_captures:
                 for capture in leaf.captures:
-                    self.get_minimax_tree(self.tree_capture(capture, list_of_states.copy(), actual_state, opponent_state),
-                                          depth-1, opponent_state, leaf, alpha, beta)
                     if alpha >= beta:
                         break
 
+                    self.get_minimax_tree(self.tree_capture(capture, list_of_states.copy(), actual_state, opponent_state),
+                                          depth-1, opponent_state, leaf, alpha, beta)
+
             if possible_captures == [] and possible_moves:
                 for move in leaf.moves:
-                    self.get_minimax_tree(self.tree_move(move, list_of_states.copy(), actual_state), depth-1,
-                                          opponent_state, leaf, alpha, beta)
                     if alpha >= beta:
                         break
+
+                    self.get_minimax_tree(self.tree_move(move, list_of_states.copy(), actual_state), depth-1,
+                                          opponent_state, leaf, alpha, beta)
 
             if possible_moves == [] and possible_captures == []:
                 white_pawns_counter = self.count_pawns(list_of_states, State.WHITE)
                 black_pawns_counter = self.count_pawns(list_of_states, State.BLACK)
                 evaluation = black_pawns_counter - white_pawns_counter
-                if actual_state == State.WHITE:
-                    alpha = min(alpha, evaluation)
-                if actual_state == State.BLACK:
-                    beta = max(beta, evaluation)
                 if evaluation > self.Max:
                     self.Max = evaluation
                     while leaf.parent.parent != 0:
@@ -270,7 +277,7 @@ class Game:
             return False
 
     def make_capture(self):
-        hit_pawn = self.has_common(self.available_moves[self.interaction[0]], self.available_moves[self.interaction[1]])
+        hit_pawn = self.find_path(self.available_moves[self.interaction[0]], self.available_moves[self.interaction[1]])
         self.board[hit_pawn] = State.EMPTY
         self.board[self.interaction[1]] = self.board[self.interaction[0]]
         self.board[self.interaction[0]] = State.EMPTY
@@ -298,8 +305,8 @@ class Game:
 
                     elif (self.interaction[1] not in self.available_moves[self.interaction[0]])\
                             and ((self.interaction[1] in self.available_captures[self.interaction[0]])
-                                 and (self.board[self.has_common(self.available_moves[self.interaction[0]],
-                                                                 self.available_moves[self.interaction[1]])] == State.BLACK)):
+                                 and (self.board[self.find_path(self.available_moves[self.interaction[0]],
+                                                                self.available_moves[self.interaction[1]])] == State.BLACK)):
                         self.make_capture()
 
                         if self.check_pawn_captures(State.BLACK, self.interaction[1]):
@@ -315,8 +322,8 @@ class Game:
 
                     elif (self.interaction[1] not in self.available_moves[self.interaction[0]]) \
                             and ((self.interaction[1] in self.available_captures[self.interaction[0]])
-                                 and (self.board[self.has_common(self.available_moves[self.interaction[0]],
-                                                                       self.available_moves[
+                                 and (self.board[self.find_path(self.available_moves[self.interaction[0]],
+                                                                self.available_moves[
                                                                            self.interaction[1]])] == State.BLACK)):
                         self.make_capture()
 
@@ -331,12 +338,12 @@ class Game:
                     self.game_over = True
 
         elif not self.white_turn:
-            self.computer_move()
+            self.black_turn()
             if self.check_win(State.WHITE):
                 self.black_wins = True
                 self.game_over = True
 
-    def computer_move(self):
+    def black_turn(self):
         self.get_minimax_tree(self.board, 6, State.BLACK, 0, -1000, 1000)
         self.board = self.pos
         self.Max = -100

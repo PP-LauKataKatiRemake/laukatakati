@@ -31,7 +31,7 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 sys.exit(0)
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                object_index = game.check_if_clickable(event.pos)
+                object_index = game.is_interactive(event.pos)
                 if object_index is not None:
                     game.add_to_interaction(object_index)
 
