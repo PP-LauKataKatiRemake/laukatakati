@@ -33,7 +33,7 @@ if __name__ == '__main__':
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 object_index = game.is_interactive(event.pos)
                 if object_index is not None:
-                    game.add_to_interaction(object_index)
+                    game.add_interactions(object_index)
 
         screen.blit(background, (0, 0))
         draw_pawns()
